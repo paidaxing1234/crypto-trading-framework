@@ -1,0 +1,8 @@
+{
+  "account_id": "your_account_id",
+  "exchange": "binance",
+  "api_key": "YOUR_EXCHANGE_API_KEY",
+  "secret_key": "YOUR_EXCHANGE_SECRET_KEY",
+  "is_testnet": true,
+  "created_at": "2026-01-01T00:00:00Z"
+}

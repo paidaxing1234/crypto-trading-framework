@@ -1,0 +1,42 @@
+{
+  "_comment": "========== VPN/代理 网络监控配置 ==========",
+  "network_monitor": {
+    "_comment_enabled": "是否启用 VPN 网络监控",
+    "enabled": false,
+    "_comment_proxy": "代理地址配置（与 proxy_config.h 默认值一致）",
+    "proxy_host": "127.0.0.1",
+    "proxy_port": 7890,
+    "_comment_targets": "通过代理探测的目标地址列表（任一不通即视为代理中断）",
+    "check_targets": [
+      "https://www.okx.com",
+      "https://fapi.binance.com"
+    ],
+    "check_interval_seconds": 30,
+    "check_timeout_seconds": 10,
+    "fail_threshold": 3,
+    "alert_cooldown_seconds": 300,
+    "notify_on_recovery": true
+  },
+  "_comment_email": "========== 邮件告警配置（授权码请勿提交到仓库） ==========",
+  "email_alert": {
+    "provider": "smtp",
+    "smtp_host": "smtp.qq.com",
+    "smtp_port": 465,
+    "smtp_user": "your_email@qq.com",
+    "smtp_password": "YOUR_SMTP_AUTH_CODE",
+    "smtp_use_ssl": true,
+    "smtp_use_tls": false,
+    "from_email": "your_email@qq.com",
+    "from_name": "交易系统-网络监控",
+    "to_emails": ["alert@example.com"],
+    "enabled": false,
+    "min_alert_interval": 30,
+    "alert_level_threshold": "INFO",
+    "default_subject": "[网络告警]"
+  },
+  "notes": [
+    "本配置文件用于 VPN/代理 网络连接监控",
+    "监控原理: 定期通过代理访问交易所地址，检测代理是否可用",
+    "邮件配置: 使用 QQ 邮箱 SMTP，smtp_password 为授权码（非登录密码）"
+  ]
+}

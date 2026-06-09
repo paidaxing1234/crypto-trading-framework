@@ -1,0 +1,45 @@
+{
+  "_comment": "=== 账户 <-> 策略 绑定配置示例（实例化运行参数） ===",
+  "account_id": "your_account_id",
+  "exchange": "binance",
+  "api_key": "YOUR_EXCHANGE_API_KEY",
+  "secret_key": "YOUR_EXCHANGE_SECRET_KEY",
+  "passphrase": "",
+  "is_testnet": true,
+  "market": "swap",
+
+  "strategy_id": "your_strategy_id",
+  "strategy_name": "示例策略",
+  "strategy_type": "five_mom_factor",
+  "python_file": "example_strategy.py",
+  "enabled": false,
+  "dynamic_symbols": true,
+  "instance_tag": "testnet",
+  "description": "策略说明",
+
+  "contacts": [
+    { "name": "策略负责人", "role": "owner", "email": "contact@example.com" }
+  ],
+
+  "redis": { "host": "127.0.0.1", "port": 6379, "password": "" },
+
+  "logging": { "log_file": "", "log_level": "INFO" },
+
+  "factor_params": {
+    "lookback_window_20": 20,
+    "lookback_window_60": 60,
+    "liquidity_period": 60,
+    "liq_quantile": 0.2,
+    "long_short_ratio": 5,
+    "direction": "descending"
+  },
+
+  "trading_params": {
+    "interval": "8h",
+    "history_bars": 200,
+    "min_bars": 60,
+    "leverage": 1,
+    "position_ratio": 0.9,
+    "rebalance_interval_hours": 8
+  }
+}

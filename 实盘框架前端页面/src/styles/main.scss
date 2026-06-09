@@ -1,0 +1,74 @@
+// 通用工具类
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// 卡片样式（使用 CSS 变量自动适配明暗）
+.stat-card {
+  padding: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+  }
+
+  .stat-change {
+    font-size: 12px;
+    margin-top: 8px;
+    color: var(--text-secondary);
+  }
+}
+
+// 状态标签（使用 CSS 变量）
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+
+  &.running { background: rgba(0, 180, 140, 0.1); color: var(--accent-green); }
+  &.stopped { background: rgba(0, 0, 0, 0.04); color: var(--text-muted); }
+  &.pending { background: rgba(255, 125, 0, 0.1); color: var(--accent-orange); }
+  &.error { background: rgba(245, 63, 63, 0.1); color: var(--accent-red); }
+}
+
+html.dark .status-badge {
+  &.stopped { background: rgba(139, 148, 158, 0.15); }
+}
+
+// 响应式
+@media (max-width: 768px) {
+  .stat-card {
+    padding: 15px;
+    .stat-value { font-size: 20px; }
+  }
+}

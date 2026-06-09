@@ -1,0 +1,10 @@
+{
+  "username": "your_username",
+  "role": "SUPER_ADMIN",
+  "active": true,
+  "allowed_strategies": [],
+  "password_hash": "GENERATED_SHA256_HASH_OF_SALT_PLUS_PASSWORD",
+  "salt": "GENERATED_RANDOM_HEX_SALT",
+  "created_at": 0,
+  "last_login": 0
+}

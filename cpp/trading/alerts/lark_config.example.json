@@ -1,0 +1,11 @@
+{
+  "webhook_url": "https://open.larksuite.com/open-apis/bot/v2/hook/YOUR_WEBHOOK_UUID",
+  "secret": "YOUR_WEBHOOK_SIGN_SECRET",
+  "app_id": "YOUR_LARK_APP_ID",
+  "app_secret": "YOUR_LARK_APP_SECRET",
+  "domain": "https://open.larksuite.com",
+  "notify_phones": [],
+  "enabled": false,
+  "min_alert_interval": 10,
+  "alert_level_threshold": "INFO"
+}

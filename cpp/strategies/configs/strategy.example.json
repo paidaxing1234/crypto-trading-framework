@@ -1,0 +1,45 @@
+{
+  "strategy_id": "your_strategy_id",
+  "account_id": "your_account_id",
+  "strategy_name": "示例策略",
+  "strategy_type": "grid",
+  "enabled": false,
+  "description": "策略说明",
+
+  "exchange": "okx",
+  "api_key": "YOUR_EXCHANGE_API_KEY",
+  "secret_key": "YOUR_EXCHANGE_SECRET_KEY",
+  "passphrase": "YOUR_OKX_PASSPHRASE",
+  "is_testnet": true,
+  "market": "futures",
+
+  "contacts": [
+    {
+      "name": "联系人姓名",
+      "phone": "+86-138-0000-0000",
+      "email": "contact@example.com",
+      "wechat": "wechat_id",
+      "department": "量化交易部",
+      "role": "策略负责人"
+    }
+  ],
+
+  "risk_control": {
+    "enabled": true,
+    "max_position_value": 50000,
+    "max_daily_loss": 5000,
+    "max_order_amount": 1000,
+    "max_orders_per_minute": 20
+  },
+
+  "params": {
+    "symbol": "BTC-USDT-SWAP",
+    "grid_num": 20,
+    "grid_spread": 0.002,
+    "order_amount": 50,
+    "price_range": [80000, 100000]
+  },
+
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

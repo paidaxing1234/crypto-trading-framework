@@ -1,0 +1,90 @@
+# ============================================================
+#  实盘交易框架 .gitignore —— 安全优先（密钥/个人数据绝不入库）
+# ============================================================
+
+# ---------- 真实配置 / 密钥（只允许 *.example.json 入库） ----------
+cpp/strategies/acount_configs/*.json
+cpp/user_configs/*.json
+cpp/totalconfig/*.json
+cpp/strategies/configs/*.json
+cpp/strategies/strategy_configs/*.json
+cpp/trading/alerts/email_config.json
+cpp/trading/alerts/lark_config.json
+# 例外：保留脱敏模板
+!*.example.json
+
+# 通用密钥/凭证文件
+*.pem
+*.key
+*.crt
+*.p12
+*.keystore
+id_rsa*
+.env
+.env.*
+**/secrets/**
+**/*secret*.json
+**/*credential*.json
+
+# ---------- 真实交易/财务数据 ----------
+tradinginformation/
+*交割单*.csv
+*_trade_statement*.csv
+
+# ---------- 专有策略实现（只保留 grid 与 example_strategy.py 作示例） ----------
+cpp/strategies/implementations/*
+!cpp/strategies/implementations/grid/
+!cpp/strategies/implementations/example_strategy.py
+# 编译/加密策略包
+*.ENCRYPTED.*.tar.gz
+
+# 专有因子/ML 引擎
+cpp/str/
+
+# ---------- 日志 ----------
+cpp/logs/
+cpp/strategies/logs/
+**/logs/
+*.log
+
+# ---------- 构建产物 ----------
+cpp/build/
+cpp/strategies/build/
+**/build/
+*.o
+*.a
+*.so
+*.dll
+*.lib
+*.exe
+*.onnx
+CMakeCache.txt
+CMakeFiles/
+
+# ---------- Python ----------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv*/
+env/
+*.egg-info/
+
+# ---------- 前端 ----------
+node_modules/
+dist/
+.vite/
+*.local
+
+# ---------- 编辑器 / 个人 ----------
+.vscode/
+.idea/
+.claude/
+tasks.xml
+*.bak
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
