@@ -13,8 +13,8 @@
       userTrades 间隔 0.15s(≈2000 weight/min), income 间隔 1.0s。撞 429 指数退避。
 
 用法:
-  python3 export_trade_statements.py                 # 三个账户全部
-  python3 export_trade_statements.py --account acct1  # 单账户
+  python3 export_trade_statements.py                      # 全部账户
+  python3 export_trade_statements.py --account <account_id>  # 单账户
 """
 import argparse
 import csv

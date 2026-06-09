@@ -113,7 +113,7 @@ public:
         // 打开日志文件（按天分割，追加模式）
         if (!log_file_path_.empty()) {
             // 解析基础路径：去掉扩展名，用于拼接日期
-            // 例如 "logs/ret_skew_binance_btc_main.txt" -> base="logs/ret_skew_binance_btc_main", ext=".log"
+            // 例如 "logs/strategy_a_main.txt" -> base="logs/strategy_a_main", ext=".log"
             auto dot_pos = log_file_path_.rfind('.');
             if (dot_pos != std::string::npos) {
                 log_file_base_ = log_file_path_.substr(0, dot_pos);

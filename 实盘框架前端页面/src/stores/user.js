@@ -214,40 +214,15 @@ export const useUserStore = defineStore('user', () => {
             password: credentials.password
           }))
         } else {
-          // WebSocket未连接，使用Mock模式
-          console.warn('WebSocket未连接，使用Mock模式')
+          // WebSocket 未连接：直接报错，绝不伪造任何会话。
+          // （已移除 admin/admin 的 Mock 登录后门——真实鉴权一律走后端 WebSocket）
           wsClient.off('response', handleResponse)
           wsClient.off('login_response', handleResponse)
-
-          let mockUser
-          if (credentials.username === 'admin' && credentials.password === 'admin') {
-            mockUser = {
-              id: 1,
-              username: 'admin',
-              name: '超级管理员',
-              role: UserRole.SUPER_ADMIN,
-              email: '',
-              avatar: '',
-              createdAt: new Date('2024-01-01')
-            }
-          } else {
-            loading.value = false
-            const error = new Error('用户名或密码错误')
-            ElMessage.error(error.message)
-            reject(error)
-            return
-          }
-
-          const mockToken = 'mock_token_' + Date.now()
-          token.value = mockToken
-          userInfo.value = mockUser
-          allowedStrategies.value = []
-          localStorage.setItem('token', mockToken)
-          localStorage.setItem('userInfo', JSON.stringify(mockUser))
-
-          ElMessage.success('登录成功 (Mock模式)')
           loading.value = false
-          resolve({ success: true, user: mockUser })
+          const error = new Error('无法连接后端服务，请确认交易后端 WebSocket 已启动后重试')
+          ElMessage.error(error.message)
+          reject(error)
+          return
         }
 
         // 超时处理

@@ -26,7 +26,7 @@
                    requirepass
                          |
               [data_recorder / fast_kline_filler]
-              [策略进程 five_mom_factor / ret_skew]
+              [策略进程 strategy_a / strategy_b]
 ```
 
 ---
@@ -65,9 +65,11 @@ EOF
 chmod 600 ~/.trading_env
 ```
 
-### 步骤3: 按 01_security_checklist.md 逐项加固
+### 步骤3: 按通用安全基线逐项加固
 
-### 步骤4: 按 02_performance_cpp.md 和 03_performance_python.md 逐项优化
+最小权限运行、UFW 仅放行必要端口、Redis 设 `requirepass` 且仅绑 `127.0.0.1`、关闭公网暴露、TLS 终结、API Key 绑定 IP 白名单并关闭提币权限。
+
+### 步骤4: 按 02_performance_cpp.md 逐项优化
 
 ### 步骤5: 配置 nginx
 

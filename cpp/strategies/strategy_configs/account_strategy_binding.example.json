@@ -10,7 +10,7 @@
 
   "strategy_id": "your_strategy_id",
   "strategy_name": "示例策略",
-  "strategy_type": "five_mom_factor",
+  "strategy_type": "example_factor",
   "python_file": "example_strategy.py",
   "enabled": false,
   "dynamic_symbols": true,
@@ -26,11 +26,12 @@
   "logging": { "log_file": "", "log_level": "INFO" },
 
   "factor_params": {
-    "lookback_window_20": 20,
-    "lookback_window_60": 60,
-    "liquidity_period": 60,
-    "liq_quantile": 0.2,
-    "long_short_ratio": 5,
+    "_comment": "示例占位参数，请替换为你自己的因子参数",
+    "lookback_window_short": 0,
+    "lookback_window_long": 0,
+    "liquidity_period": 0,
+    "liq_quantile": 0,
+    "long_short_ratio": 0,
     "direction": "descending"
   },
 
