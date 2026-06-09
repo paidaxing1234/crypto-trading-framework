@@ -170,7 +170,7 @@ pip install -r requirements.txt
 ### 3. 前端操作台
 
 ```bash
-cd 实盘框架前端页面
+cd operator-console
 npm install
 npm run dev      # 开发，默认 http://localhost:3000
 npm run build    # 生产构建，产物在 dist/

@@ -106,7 +106,7 @@ services:
       # 演示模式：引擎未起时允许以「只读受限角色」登录预览界面（本地预览用，生产务必关闭）。
       VITE_DEMO_MODE: ${VITE_DEMO_MODE:-true}
     volumes:
-      - ./实盘框架前端页面:/app
+      - ./operator-console:/app
       # 用匿名卷隔离容器内 node_modules，避免覆盖宿主/跨平台二进制不兼容
       - frontend_node_modules:/app/node_modules
     ports:

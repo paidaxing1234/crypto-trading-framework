@@ -172,7 +172,7 @@ The ops scripts under `cpp/scripts/` (kline preload, equity recorder, stats API,
 ### 3. Frontend control panel
 
 ```bash
-cd 实盘框架前端页面   # "real-account frontend"
+cd operator-console   # "real-account frontend"
 npm install
 npm run dev      # dev server, default http://localhost:3000
 npm run build    # production build → dist/

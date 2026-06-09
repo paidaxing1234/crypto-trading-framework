@@ -83,7 +83,7 @@ server {
 
     # 前端静态文件
     location / {
-        root /home/trading/trading-framework/实盘框架前端页面/dist;
+        root /home/trading/trading-framework/operator-console/dist;
         try_files $uri $uri/ /index.html;
     }
 
@@ -108,7 +108,7 @@ server {
 ### 步骤6: 构建前端
 
 ```bash
-cd 实盘框架前端页面
+cd operator-console
 # 创建生产环境配置
 echo 'VITE_WS_URL=wss://your-domain.com/ws' > .env.production
 npm install && npm run build
