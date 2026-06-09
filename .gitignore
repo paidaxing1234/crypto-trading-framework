@@ -22,6 +22,9 @@ cpp/trading/alerts/lark_config.json
 id_rsa*
 .env
 .env.*
+# 例外：保留脱敏的环境变量模板（根目录与前端）
+!.env.example
+!**/.env.example
 **/secrets/**
 **/*secret*.json
 **/*credential*.json

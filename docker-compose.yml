@@ -1,0 +1,227 @@
+＃ ============================================================================
+# docker-compose.yml  —  _ctf_audit 实盘交易框架 本地一键起步
+# ----------------------------------------------------------------------------
+# 设计原则（务实优先，诚实标注）：
+#   [开箱即用] redis + frontend + stats-api  ->  docker compose up 即可看到界面
+#   [需自行配置密钥] cpp-builder + 引擎运行   ->  依赖真实交易所 API Key，默认不自动起
+#
+# 所有密钥/口令一律走环境变量引用 .env，本文件不写死任何敏感值。
+# 复制 .env.example 为 .env 并填好后再启动：  cp .env.example .env
+#
+# 端口/连接事实（已与源码核对）：
+#   - Redis            6379   env: REDIS_HOST/REDIS_PORT/REDIS_PASSWORD
+#   - C++ 引擎前端 WS   8002   trading_server_main.cpp 绑 0.0.0.0:8002
+#   - stats_api.py     8003   只读 Redis，零额外依赖(numpy/redis)，默认绑 127.0.0.1
+#   - 前端 Vite dev    3000   代理 /ws->8002, /stats-api->8003
+# ============================================================================
+
+# 注意：以上首字符为全角“＃”仅为转义占位，真实文件请整体视为注释头；
+# 下方 services 才是有效 YAML。若直接复制，请删除本说明行。
+
+services:
+  # ==========================================================================
+  # [开箱即用] Redis —— 行情/净值/订单的中枢缓存
+  # 绑 127.0.0.1 只暴露到本机；带 requirepass；AOF 持久化到命名卷。
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: ctf_redis
+    restart: unless-stopped
+    # requirepass 走环境变量，绝不写死。.env 里设 REDIS_PASSWORD。
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD 必须在 .env 中设置}
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory ${REDIS_MAXMEMORY:-1gb}
+      --maxmemory-policy noeviction
+    ports:
+      # 仅绑 127.0.0.1，禁止公网暴露 6379
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ctf_net
+
+  # ==========================================================================
+  # [开箱即用] stats-api —— 账户/策略只读统计 API (Python, http.server)
+  # 只读 equity_recorder 写入的 Redis key；不碰实盘进程，可随时重启。
+  # 依赖极轻：仅 numpy + redis。无密钥需求（但读 Redis 需 REDIS_PASSWORD）。
+  # 没数据时返回空/None，不会崩——首屏空曲线属正常现象。
+  # ==========================================================================
+  stats-api:
+    image: python:3.11-slim
+    container_name: ctf_stats_api
+    restart: unless-stopped
+    working_dir: /app/cpp/scripts
+    command: >
+      sh -c "pip install --no-cache-dir redis numpy >/dev/null 2>&1 &&
+             python3 stats_api.py"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD 必须在 .env 中设置}
+      # 容器内绑 0.0.0.0 让前端容器可达；对外仅通过下方 ports 暴露到本机。
+      STATS_API_HOST: "0.0.0.0"
+      STATS_API_PORT: "8003"
+    volumes:
+      # 挂载仓库根目录，stats_api.py 需读取 ../strategies/acount_configs 等相对路径
+      - ./:/app:ro
+    ports:
+      - "127.0.0.1:8003:8003"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - ctf_net
+
+  # ==========================================================================
+  # [开箱即用] frontend —— Vue3 + Vite 开发服务器 (先把界面跑起来看到 UI)
+  # 默认 dev 模式：热更新、零构建等待。Vite 代理 /ws 与 /stats-api 到下游。
+  # 若 C++ 引擎(8002)未起，前端会自动进入 Mock 模式，界面照样能看(WebSocketClient.js)。
+  # ----------------------------------------------------------------------------
+  # 关键点：Vite dev 的 proxy 默认指向 127.0.0.1，在容器里要改指向 service 名。
+  # 这里通过 env 让前端直连：
+  #   - VITE_WS_URL          直接走宿主机的 C++ 引擎(见下方注释)
+  #   - VITE_STATS_API_URL   直接走 stats-api 容器
+  # ==========================================================================
+  frontend:
+    image: node:20-alpine
+    container_name: ctf_frontend
+    restart: unless-stopped
+    working_dir: /app
+    command: >
+      sh -c "npm install --no-audit --no-fund &&
+             npm run dev -- --host 0.0.0.0 --port 3000"
+    environment:
+      # WS 指向宿主机上的 C++ 引擎。容器访问宿主用 host.docker.internal。
+      VITE_WS_URL: ${VITE_WS_URL:-ws://host.docker.internal:8002}
+      # 统计 API 直连同网络的 stats-api 容器（完整地址，绕过 vite 同源代理即可）。
+      VITE_STATS_API_URL: ${VITE_STATS_API_URL:-http://localhost:8003}
+      # 演示模式：引擎未起时允许以「只读受限角色」登录预览界面（本地预览用，生产务必关闭）。
+      VITE_DEMO_MODE: ${VITE_DEMO_MODE:-true}
+    volumes:
+      - ./实盘框架前端页面:/app
+      # 用匿名卷隔离容器内 node_modules，避免覆盖宿主/跨平台二进制不兼容
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "127.0.0.1:3000:3000"
+    # 让容器内能用 host.docker.internal 访问宿主机的 C++ 引擎(Linux 需此项)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - stats-api
+    networks:
+      - ctf_net
+
+  # ==========================================================================
+  # [需自行配置密钥 / 默认不自动启动] cpp-builder —— 仅用于「编译」C++ 引擎
+  # ----------------------------------------------------------------------------
+  # 为什么放进来但默认不起：
+  #   1) C++ 引擎运行需真实交易所 API Key(OKX/Binance)，会真连交易所、可能下真单，
+  #      不能无脑 up；密钥与风控必须人工确认。
+  #   2) 这个 service 只做「一次性编译」，产出 build/ 下的可执行文件后即退出。
+  #      编译完用宿主机或 systemd 跑引擎(见 improve/04_deployment_guide.md)，更可控。
+  #
+  # 用法（按需手动触发，不会被 `docker compose up` 默认拉起）：
+  #   docker compose --profile build run --rm cpp-builder
+  # 产物落在宿主机 ./cpp/build/ ：trading_server_full / data_recorder /
+  #                              kline_gap_filler / kline_fast_filler / strategy_base.so
+  # ==========================================================================
+  cpp-builder:
+    image: ubuntu:22.04
+    container_name: ctf_cpp_builder
+    profiles: ["build"]          # 关键：归入 build profile，默认 up 不会启动它
+    working_dir: /src/cpp
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+    command: >
+      bash -lc "
+        set -e
+        apt-get update &&
+        apt-get install -y --no-install-recommends
+          build-essential cmake git pkg-config
+          libssl-dev libcurl4-openssl-dev
+          libhiredis-dev libzmq3-dev
+          libwebsocketpp-dev libasio-dev nlohmann-json3-dev
+          pybind11-dev python3-dev python3-pybind11 &&
+        rm -rf build && mkdir -p build && cd build &&
+        cmake -DCMAKE_BUILD_TYPE=Release .. &&
+        cmake --build . -j\$(nproc) &&
+        echo '======================================================' &&
+        echo '[cpp-builder] 编译完成，产物在宿主机 ./cpp/build/ :' &&
+        ls -1 trading_server_full data_recorder kline_gap_filler kline_fast_filler 2>/dev/null || true &&
+        echo '下一步：在宿主机配置真实密钥 env 后手动运行 ./trading_server_full' &&
+        echo '======================================================'
+      "
+    volumes:
+      # 把仓库挂进来，产物直接写回宿主机 ./cpp/build/
+      - ./:/src
+    # 注意：本 service 不声明运行引擎所需的交易所密钥——编译阶段用不到，
+    # 运行阶段(真连交易所)请见 quickstart 与 .env.example 中的 *_API_KEY 段。
+    networks:
+      - ctf_net
+
+  # ==========================================================================
+  # [需自行配置密钥 / 默认不自动启动 / 模板] cpp-engine —— 真实引擎运行(高危)
+  # ----------------------------------------------------------------------------
+  # 默认归入 engine profile，绝不随 `docker compose up` 启动。
+  # 运行它意味着用你的真实 API Key 连接交易所，可能产生真实成交。务必：
+  #   - 先用 *_TESTNET=1 在测试网验证；
+  #   - API Key 仅授予合约交易权限、绑 IP 白名单、关闭提币；
+  #   - 小资金验证后再放量。
+  # 前置：必须先用 cpp-builder 编译出 ./cpp/build/trading_server_full。
+  # 触发：docker compose --profile engine up cpp-engine
+  # ==========================================================================
+  cpp-engine:
+    image: ubuntu:22.04
+    container_name: ctf_cpp_engine
+    profiles: ["engine"]         # 关键：默认 up 不会启动
+    restart: "no"
+    working_dir: /src/cpp/build
+    # 运行期仍需运行时动态库(与 builder 同套依赖的运行时部分)
+    command: >
+      bash -lc "
+        apt-get update &&
+        apt-get install -y --no-install-recommends
+          libssl3 libcurl4 libhiredis0.14 libzmq5 python3 &&
+        echo '[cpp-engine] 启动 trading_server_full (端口 8002) ...' &&
+        ./trading_server_full
+      "
+    environment:
+      # Redis 连接（指向同网络的 redis 容器）
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD 必须在 .env 中设置}
+      # ===== 交易所密钥：全部走 .env，禁止写死。不填则引擎用占位值无法真连 =====
+      OKX_API_KEY: ${OKX_API_KEY:-}
+      OKX_SECRET_KEY: ${OKX_SECRET_KEY:-}
+      OKX_PASSPHRASE: ${OKX_PASSPHRASE:-}
+      OKX_TESTNET: ${OKX_TESTNET:-1}            # 默认测试网，安全优先
+      BINANCE_API_KEY: ${BINANCE_API_KEY:-}
+      BINANCE_SECRET_KEY: ${BINANCE_SECRET_KEY:-}
+      BINANCE_TESTNET: ${BINANCE_TESTNET:-1}    # 默认测试网，安全优先
+    volumes:
+      - ./:/src
+    ports:
+      # 引擎前端 WS，仅暴露到本机
+      - "127.0.0.1:8002:8002"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - ctf_net
+
+# ============================================================================
+volumes:
+  redis_data:               # Redis AOF 持久化
+  frontend_node_modules:    # 隔离前端依赖，避免跨平台二进制冲突
+
+networks:
+  ctf_net:
+    driver: bridge

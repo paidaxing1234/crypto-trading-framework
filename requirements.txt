@@ -1,0 +1,37 @@
+# ============================================================
+# _ctf_audit — Python 第三方依赖
+# 来源:cpp/scripts/*.py、cpp/strategies/**/*.py、cpp/trading/alerts/*.py
+#   的真实 import 汇总(仅列第三方包,标准库不计)
+# 安装:  pip install -r requirements.txt
+# ============================================================
+
+# HTTP 客户端 —— 交易所 REST 拉取(Binance/OKX K线、资金费率、账户),
+# 飞书/邮件告警 webhook。被 equity_*、fast_kline_filler、preload_*、
+# export_trade_statements、fetch_*_min_qty、refill_from_vision、
+# auto_kline_monitor_v2、alerts/* 等大量使用。
+requests>=2.31.0,<3.0.0
+
+# Redis 客户端 —— K线/资金费率/权益/统计数据读写。
+# 被 stats_api、equity_*、preload_*、fast_kline_filler、reaggregate_klines、
+# boundary_probe、refill_from_vision、redis_data_fetcher、test_redis_8h_klines 使用。
+# 4.x 起为纯 Python 实现(原 aioredis 已合并),钉 5.x 稳定线。
+redis>=5.0.0,<6.0.0
+
+# 数值计算 —— stats_api.py 的收益/回撤/夏普等统计指标,
+# strategies/utils/kline_manager.py 的 K线数组运算。
+numpy>=1.26.0,<2.0.0
+
+# HTTP 重试/连接池(requests 的底层依赖,但被显式 import):
+#   fetch_binance_min_qty.py / fetch_okx_min_coin_qty.py 直接
+#   from urllib3.util.retry import Retry 做退避重试。
+# 钉 1.26.x:与 requests<3 兼容性最佳,2.x 在部分老环境有兼容问题。
+urllib3>=1.26.18,<2.0.0
+
+# 说明:
+# - 其余 import 均为 Python 标准库(os/sys/json/time/hmac/hashlib/
+#   urllib.parse/glob/csv/argparse/smtplib/email/socket/base64/zipfile/
+#   io/queue/threading/subprocess/concurrent.futures/datetime/typing/
+#   enum/collections/pathlib/logging/http.server)无需安装。
+# - strategy_base / strategy_logger / preload_klines_to_redis 等为项目
+#   内部模块(本地 import),不是 PyPI 包,不在此列。
+# - C++ 侧(交易引擎/服务器)依赖见 CMakeLists.txt,与本文件无关。

@@ -214,12 +214,36 @@ export const useUserStore = defineStore('user', () => {
             password: credentials.password
           }))
         } else {
-          // WebSocket 未连接：直接报错，绝不伪造任何会话。
-          // （已移除 admin/admin 的 Mock 登录后门——真实鉴权一律走后端 WebSocket）
+          // WebSocket 未连接。
+          // 已移除原 admin/admin 的 Mock 登录后门。仅当显式设置 VITE_DEMO_MODE=true 时，
+          // 进入「只读演示模式」（受限角色，非超管），方便无后端时预览界面；默认关闭——
+          // 生产环境绝不会伪造任何管理员会话。
           wsClient.off('response', handleResponse)
           wsClient.off('login_response', handleResponse)
+
+          if (import.meta.env.VITE_DEMO_MODE === 'true') {
+            const demoUser = {
+              id: 0,
+              username: credentials.username || 'demo',
+              name: '演示用户',
+              role: UserRole.STRATEGY_MANAGER, // 受限角色（仅查看），绝非 SUPER_ADMIN
+              email: '',
+              avatar: '',
+              createdAt: new Date()
+            }
+            token.value = 'demo_token_' + Date.now()
+            userInfo.value = demoUser
+            allowedStrategies.value = []
+            localStorage.setItem('token', token.value)
+            localStorage.setItem('userInfo', JSON.stringify(demoUser))
+            ElMessage.success('已进入只读演示模式（无后端）')
+            loading.value = false
+            resolve({ success: true, user: demoUser })
+            return
+          }
+
           loading.value = false
-          const error = new Error('无法连接后端服务，请确认交易后端 WebSocket 已启动后重试')
+          const error = new Error('无法连接后端服务，请确认交易后端 WebSocket 已启动后重试（预览界面可设 VITE_DEMO_MODE=true）')
           ElMessage.error(error.message)
           reject(error)
           return
